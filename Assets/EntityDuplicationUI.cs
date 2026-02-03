@@ -5,6 +5,7 @@ using UnityEngine;
 using TMPro;
 using SimpleFileBrowser;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 public class EntityDuplicationUI : MonoBehaviour
 {
@@ -26,6 +27,10 @@ public class EntityDuplicationUI : MonoBehaviour
     private int cropType = 0;
     private int cropStage = 6;
 
+    private string entityReferenceFolder => entityReference.Split("\\").Last().Replace("Plant_Crop_", "").Replace("_Item.json", "");
+    private string assetsRefDir => entityReference.Split("\\Server\\")[0];
+    private string refPlantDir => string.Format("{0}{1}{2}{3}{4}{5}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Crop_", entityReferenceFolder, "_Block.json");
+
     private string serverDir => outputPath + "/Server";
     private string languageDir => serverDir + "/Languages";
     private string enDir => languageDir + "/en-US";
@@ -33,14 +38,14 @@ public class EntityDuplicationUI : MonoBehaviour
     private string itemDir => serverDir + "/Item";
     private string itemsDir => itemDir + "/Items";
     private string plantsDir => itemsDir + "/Plants";
-    private string seedsDir => itemsDir + "/Seeds";
+    private string seedsDir => itemsDir + "/Seeds"; 
     private string dropsDir => serverDir + "/Drops";
-    private string newDropDir => dropsDir + "/" + entityName.Replace("More_Chillies_", "").Replace("_", "");
+    private string newDropDir => dropsDir + "/" + entityNameFolder;
     private string commonDir => outputPath + "/Common";
     private string resourcesDir => commonDir + "/Resources";
-    private string newResourceDir => resourcesDir + "/" + entityName.Replace("More_Chillies_", "").Replace("_", "");
+    private string newResourceDir => resourcesDir + "/" + entityNameFolder;
     private string seedbagDir => resourcesDir + "/SeedBag_Textures";
-    private string newSeedbagDir => seedbagDir + "/" + entityName.Replace("More_Chillies_", "").Replace("_", "");
+    private string newSeedbagDir => seedbagDir + "/" + entityNameFolder;
 
     private string modelFile => "{\n  'lod': 'auto',\n  'nodes': []\n}";
 
@@ -178,6 +183,7 @@ public void Start()
 
                     text = InsertBetween(text, "\"Texture\": \"Resources/", "_Texture.png\",", entityNameFolder + "/"  + entityName);
                     text = InsertBetween(text, "Model\": \"Resources/", ".blockymodel\",", entityNameFolder + "/" + entityName);
+
                     sw.Write(text);
                 }
             }
@@ -193,14 +199,22 @@ public void Start()
             Directory.CreateDirectory(seedsDir);
         }
 
+        var createdPlantDir = plantsDir +"/" + uniqueID + "_Plant";
+
         if (cropType == 0 || cropType == 1) // Normal Crop
         {
-
+            if (!File.Exists(createdPlantDir + ".json"))
+            {
+                File.Copy(refPlantDir, createdPlantDir + ".json", false);
+            }
         }
 
         if (cropType == 0 || cropType == 2) // Eternal Crop
         {
-
+            if (!File.Exists(createdPlantDir + "_Eternal.json"))
+            {
+                File.Copy(refPlantDir, createdPlantDir + "_Eternal.json", false);
+            }
         }
 
         if (!Directory.Exists(commonDir))
