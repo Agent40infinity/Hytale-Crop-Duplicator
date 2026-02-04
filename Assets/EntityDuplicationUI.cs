@@ -29,7 +29,9 @@ public class EntityDuplicationUI : MonoBehaviour
 
     private string entityReferenceFolder => entityReference.Split("\\").Last().Replace("Plant_Crop_", "").Replace("_Item.json", "");
     private string assetsRefDir => entityReference.Split("\\Server\\")[0];
-    private string refPlantDir => string.Format("{0}{1}{2}{3}{4}{5}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Crop_", entityReferenceFolder, "_Block.json");
+    private string refPlantDir => string.Format("{0}{1}{2}{3}{4}{5}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Crop_", entityReferenceFolder, "_Block");
+    private string refSeedDir => string.Format("{0}{1}{2}{3}{4}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Seeds_", entityReferenceFolder);
+    const string eternalString = "_Eternal.json";
 
     private string serverDir => outputPath + "/Server";
     private string languageDir => serverDir + "/Languages";
@@ -200,20 +202,31 @@ public void Start()
         }
 
         var createdPlantDir = plantsDir +"/" + uniqueID + "_Plant";
+        var createdSeedDir = seedsDir +"/" + uniqueID + "_Seeds";
 
         if (cropType == 0 || cropType == 1) // Normal Crop
         {
             if (!File.Exists(createdPlantDir + ".json"))
             {
-                File.Copy(refPlantDir, createdPlantDir + ".json", false);
+                File.Copy(refPlantDir + ".json", createdPlantDir + ".json", false);
+            }
+
+            if (!File.Exists(createdSeedsDir + ".json"))
+            {
+                File.Copy(refSeedDir + ".json", createdSeedsDir + ".json", false);
             }
         }
 
         if (cropType == 0 || cropType == 2) // Eternal Crop
         {
-            if (!File.Exists(createdPlantDir + "_Eternal.json"))
+            if (!File.Exists(createdPlantDir + eternalString))
             {
-                File.Copy(refPlantDir, createdPlantDir + "_Eternal.json", false);
+                File.Copy(refPlantDir + eternalString, createdPlantDir + eternalString, false);
+            }
+
+            if (!File.Exists(createdSeedsDir + eternalString))
+            {
+                File.Copy(refSeedDir + eternalString, createdSeedsDir + eternalString, false);
             }
         }
 
