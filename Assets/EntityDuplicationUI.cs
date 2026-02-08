@@ -9,8 +9,10 @@ using System.Linq;
 
 public class EntityDuplicationUI : MonoBehaviour
 {
-    public TMP_InputField entityRef;
-    public TMP_InputField entityOutput;
+    public TMP_InputField modNameInput;
+    public TMP_InputField entityNameInput;
+    public TMP_InputField entityRefInput;
+    public TMP_InputField entityOutputInput;
 
     public GameObject successText;
 
@@ -25,12 +27,14 @@ public class EntityDuplicationUI : MonoBehaviour
     private string outputPath;
     private bool generateModels = true;
     private int cropType = 0;
-    private int cropStage = 6;
+    private int cropStage = 4;
 
     private string entityReferenceFolder => entityReference.Split("\\").Last().Replace("Plant_Crop_", "").Replace("_Item.json", "");
     private string assetsRefDir => entityReference.Split("\\Server\\")[0];
     private string refPlantDir => string.Format("{0}{1}{2}{3}{4}{5}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Crop_", entityReferenceFolder, "_Block");
     private string refSeedDir => string.Format("{0}{1}{2}{3}{4}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Seeds_", entityReferenceFolder);
+    private string refDropsDir => string.Format("{0}{1}{2}{3}{4}", assetsRefDir, "/Server/Drops/Crop/", entityReferenceFolder, "/Drops_Plant_Crop_", entityReferenceFolder);
+
     const string eternalString = "_Eternal.json";
 
     private string serverDir => outputPath + "/Server";
@@ -46,14 +50,32 @@ public class EntityDuplicationUI : MonoBehaviour
     private string commonDir => outputPath + "/Common";
     private string resourcesDir => commonDir + "/Resources";
     private string newResourceDir => resourcesDir + "/" + entityNameFolder;
-    private string seedbagDir => resourcesDir + "/SeedBag_Textures";
-    private string newSeedbagDir => seedbagDir + "/" + entityNameFolder;
+    private string newModelDir => newResourceDir + "/" + entityName;
+    private string seedbagTextureDir => newResourceDir + "/" + entityName + "_Seedbag.png";
+    private string eternalSeedbagTextureDir => newResourceDir + "/" + entityName + "_Eternal_Seedbag.png";
 
-    private string modelFile => "{\n  'lod': 'auto',\n  'nodes': []\n}";
+    private string modelExtension => ".blockymodel";
+    private string modelFile => "{\n  \"lod\": \"auto\",\n  \"nodes\": []\n}";
 
-public void Start()
+    public void Start()
     {
         successText.SetActive(false);
+    }
+
+    public void Awake()
+    {
+        modNameInput.text = modName = PlayerPrefs.GetString("ModName");
+        entityNameInput.text = entityName = PlayerPrefs.GetString("EntityName");
+        entityRefInput.text = entityReference = PlayerPrefs.GetString("Reference");
+        entityOutputInput.text = outputPath = PlayerPrefs.GetString("OutputPath");
+    }
+
+    public void OnDestroy()
+    {
+        PlayerPrefs.SetString("ModName", modName);
+        PlayerPrefs.SetString("EntityName", entityName);
+        PlayerPrefs.SetString("Reference", entityReference);
+        PlayerPrefs.SetString("OutputPath", outputPath);
     }
 
     public void SetModName(string name) { modName = name; }
@@ -64,7 +86,7 @@ public void Start()
 
     public void CropType(int type) { cropType = type; }
 
-    public void CropStage(int stage) { cropStage = stage; }
+    public void CropStage(int stage) { cropStage = stage + 1; }
 
     public void GetReferenceObj(string _)
     {
@@ -79,7 +101,7 @@ public void Start()
     public void OnSuccessGetFile(string[] filePath)
     {
         entityReference = filePath[0];
-        entityRef.text = entityReference;
+        entityRefInput.text = entityReference;
     }
 
     public void GetOutputPath(string _)
@@ -95,7 +117,7 @@ public void Start()
     public void OnSuccessGetFolder(string[] filePath)
     {
         outputPath = filePath[0];
-        entityOutput.text = outputPath;
+        entityOutputInput.text = outputPath;
     }
 
     public void OnFailed() { return; }
@@ -127,12 +149,7 @@ public void Start()
             Directory.CreateDirectory(enDir);
         }
 
-        if (!File.Exists(serverLang))
-        {
-            File.Create(serverLang);
-        }
-
-        using (FileStream fs = new FileStream(serverLang, FileMode.Open, FileAccess.ReadWrite))
+        using (FileStream fs = new FileStream(serverLang, FileMode.OpenOrCreate, FileAccess.ReadWrite))
         {
             using (StreamReader sr = new StreamReader(fs))
             {
@@ -172,7 +189,7 @@ public void Start()
             File.Copy(entityReference, itemPath, false);
         }
 
-        using (FileStream fs = new FileStream(itemPath, FileMode.Open, FileAccess.ReadWrite))
+        using (FileStream fs = new FileStream(itemPath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
         {
             using (StreamReader sr = new StreamReader(fs))
             {
@@ -201,8 +218,34 @@ public void Start()
             Directory.CreateDirectory(seedsDir);
         }
 
-        var createdPlantDir = plantsDir +"/" + uniqueID + "_Plant";
-        var createdSeedDir = seedsDir +"/" + uniqueID + "_Seeds";
+        if (!Directory.Exists(dropsDir))
+        {
+            Directory.CreateDirectory(dropsDir);
+        }
+
+        if (!Directory.Exists(newDropDir))
+        {
+            Directory.CreateDirectory(newDropDir);
+        }
+
+        if (!Directory.Exists(commonDir))
+        {
+            Directory.CreateDirectory(commonDir);
+        }
+
+        if (!Directory.Exists(resourcesDir))
+        {
+            Directory.CreateDirectory(resourcesDir);
+        }
+
+        if (!Directory.Exists(newResourceDir))
+        {
+            Directory.CreateDirectory(newResourceDir);
+        }
+
+        var createdPlantDir = plantsDir + "/" + uniqueID + "_Plant";
+        var createdSeedsDir = seedsDir + "/" + uniqueID + "_Seeds";
+        var createdDropDir = newDropDir + "/" + modName + "_Drops_" + entityName;
 
         if (cropType == 0 || cropType == 1) // Normal Crop
         {
@@ -214,6 +257,34 @@ public void Start()
             if (!File.Exists(createdSeedsDir + ".json"))
             {
                 File.Copy(refSeedDir + ".json", createdSeedsDir + ".json", false);
+            }
+
+            if (!File.Exists(createdDropDir + "_Block.json"))
+            {
+                File.Copy(refDropsDir + "_Block.json", createdDropDir + "_Block.json", false);
+            }
+
+            for (int i = 1; i <= cropStage; i++)
+            {
+                if (!File.Exists(createdDropDir + "_Stage" + i + ".json"))
+                {
+                    File.Copy(refDropsDir + "_Stage" + i + ".json", createdDropDir + "_Stage" + i + ".json", false);
+                }
+            }
+
+            if (!File.Exists(createdDropDir + "_StageFinal.json"))
+            {
+                File.Copy(refDropsDir + "_StageFinal.json", createdDropDir + "_StageFinal.json", false);
+            }
+
+            if (!File.Exists(createdDropDir + "_StageFinal_Harvest.json"))
+            {
+                File.Copy(refDropsDir + "_StageFinal_Harvest.json", createdDropDir + "_StageFinal_Harvest.json", false);
+            }
+
+            if (!File.Exists(seedbagTextureDir))
+            {
+                File.Create(seedbagTextureDir);
             }
         }
 
@@ -228,12 +299,71 @@ public void Start()
             {
                 File.Copy(refSeedDir + eternalString, createdSeedsDir + eternalString, false);
             }
+
+            if (!File.Exists(createdDropDir + "_Eternal_Block.json"))
+            {
+                File.Copy(refDropsDir + "_Eternal_Block.json", createdDropDir + "_Eternal_Block.json", false);
+            }
+
+            for (int i = 1; i <= cropStage; i++)
+            {
+                if (!File.Exists(createdDropDir + "_Eternal_Stage" + i + ".json"))
+                {
+                    File.Copy(refDropsDir + "_Eternal_Stage" + i + ".json", createdDropDir + "_Eternal_Stage" + i + ".json", false);
+                }
+            }
+
+            if (!File.Exists(createdDropDir + "_Eternal_StageFinal.json"))
+            {
+                File.Copy(refDropsDir + "_Eternal_StageFinal.json", createdDropDir + "_Eternal_StageFinal.json", false);
+            }
+
+            if (!File.Exists(createdDropDir + "_Eternal_StageFinal_Harvest.json"))
+            {
+                File.Copy(refDropsDir + "_Eternal_StageFinal_Harvest.json", createdDropDir + "_Eternal_StageFinal_Harvest.json", false);
+            }
+
+            if (!File.Exists(eternalSeedbagTextureDir))
+            {
+                File.Create(eternalSeedbagTextureDir);
+            }
         }
 
-        if (!Directory.Exists(commonDir))
+        if (!File.Exists(newModelDir + "_Texture.png"))
         {
-            Directory.CreateDirectory(commonDir);
+            File.Create(newModelDir + "_Texture.png");
         }
+
+        if (generateModels)
+        {
+            if (!File.Exists(newModelDir + modelExtension))
+            {
+                using (FileStream fs = new FileStream(newModelDir + modelExtension, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                {
+                    using (StreamWriter sw = new StreamWriter(fs))
+                    {
+                        sw.Write(modelFile);
+                    }
+                }
+            }
+
+            for (int i = 0; i <= cropStage; i++)
+            {
+                var modelStage = newModelDir + string.Format("_0{0}", i + 1) + modelExtension;
+
+                if (!File.Exists(modelStage))
+                {
+                    using (FileStream fs = new FileStream(modelStage, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                    {
+                        using (StreamWriter sw = new StreamWriter(fs))
+                        {
+                            sw.Write(modelFile);
+                        }
+                    }
+                }
+            }
+        }
+        
 
         successText.SetActive(true);
         yield return new WaitForSeconds(2);

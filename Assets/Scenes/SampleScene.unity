@@ -595,7 +595,7 @@ GameObject:
   - component: {fileID: 150948933}
   - component: {fileID: 150948932}
   m_Layer: 5
-  m_Name: EternalToggle
+  m_Name: StagesDropdown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -670,7 +670,7 @@ MonoBehaviour:
   m_Placeholder: {fileID: 0}
   m_ItemText: {fileID: 1581666075}
   m_ItemImage: {fileID: 0}
-  m_Value: 0
+  m_Value: 4
   m_Options:
     m_Options:
     - m_Text: 1
@@ -2117,7 +2117,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1
+  m_text: 5
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -6209,8 +6209,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f70c0a2d1f1f35546af0b828182fcc99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  entityRef: {fileID: 1308006656}
-  entityOutput: {fileID: 1227934739}
+  modNameInput: {fileID: 328154817}
+  entityNameInput: {fileID: 435654013}
+  entityRefInput: {fileID: 1308006656}
+  entityOutputInput: {fileID: 1227934739}
   successText: {fileID: 1487381302}
 --- !u!1 &2034636606
 GameObject:
