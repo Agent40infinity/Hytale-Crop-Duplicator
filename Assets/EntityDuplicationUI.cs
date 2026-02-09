@@ -42,7 +42,7 @@ public class EntityDuplicationUI : MonoBehaviour
     private string serverDir => outputPath + "/Server";
     private string languageDir => serverDir + "/Languages";
     private string enDir => languageDir + "/en-US";
-    private string serverLang => languageDir + "/en-US/server.lang";
+    private string serverLang => enDir + "/server.lang";
     private string itemDir => serverDir + "/Item";
     private string itemsDir => itemDir + "/Items";
     private string plantsDir => itemsDir + "/Plants";
@@ -136,16 +136,6 @@ public class EntityDuplicationUI : MonoBehaviour
 
     public IEnumerator CreateFiles()
     {
-        if (!Directory.Exists(serverDir))
-        {
-            Directory.CreateDirectory(serverDir);
-        }
-
-        if (!Directory.Exists(languageDir))
-        {
-            Directory.CreateDirectory(languageDir);
-        }
-
         if (!Directory.Exists(enDir))
         {
             Directory.CreateDirectory(enDir);
@@ -202,14 +192,24 @@ public class EntityDuplicationUI : MonoBehaviour
             }
         }
 
-        if (!Directory.Exists(itemDir))
+        if (!Directory.Exists(plantsDir))
         {
-            Directory.CreateDirectory(itemDir);
+            Directory.CreateDirectory(plantsDir);
         }
 
-        if (!Directory.Exists(itemsDir))
+        if (!Directory.Exists(seedsDir))
         {
-            Directory.CreateDirectory(itemsDir);
+            Directory.CreateDirectory(seedsDir);
+        }
+
+        if (!Directory.Exists(newDropDir))
+        {
+            Directory.CreateDirectory(newDropDir);
+        }
+
+        if (!Directory.Exists(newResourceDir))
+        {
+            Directory.CreateDirectory(newResourceDir);
         }
 
         var itemPath = Path.Combine(itemsDir, uniqueID) + ".json";
@@ -238,41 +238,6 @@ public class EntityDuplicationUI : MonoBehaviour
                     sw.Write(text);
                 }
             }
-        }
-
-        if (!Directory.Exists(plantsDir))
-        {
-            Directory.CreateDirectory(plantsDir);
-        }
-
-        if (!Directory.Exists(seedsDir))
-        {
-            Directory.CreateDirectory(seedsDir);
-        }
-
-        if (!Directory.Exists(dropsDir))
-        {
-            Directory.CreateDirectory(dropsDir);
-        }
-
-        if (!Directory.Exists(newDropDir))
-        {
-            Directory.CreateDirectory(newDropDir);
-        }
-
-        if (!Directory.Exists(commonDir))
-        {
-            Directory.CreateDirectory(commonDir);
-        }
-
-        if (!Directory.Exists(resourcesDir))
-        {
-            Directory.CreateDirectory(resourcesDir);
-        }
-
-        if (!Directory.Exists(newResourceDir))
-        {
-            Directory.CreateDirectory(newResourceDir);
         }
 
         var createdPlantDir = plantsDir + "/" + uniqueID + "_Plant";
