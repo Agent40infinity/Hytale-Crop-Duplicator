@@ -34,8 +34,10 @@ public class EntityDuplicationUI : MonoBehaviour
     private string refPlantDir => string.Format("{0}{1}{2}{3}{4}{5}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Crop_", entityReferenceFolder, "_Block");
     private string refSeedDir => string.Format("{0}{1}{2}{3}{4}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Seeds_", entityReferenceFolder);
     private string refDropsDir => string.Format("{0}{1}{2}{3}{4}", assetsRefDir, "/Server/Drops/Crop/", entityReferenceFolder, "/Drops_Plant_Crop_", entityReferenceFolder);
-
-    const string eternalString = "_Eternal.json";
+    private string refResourceDir => assetsRefDir + "/Common/Resources/";
+    private string refIngrediantsDir => refResourceDir + "Ingredients/";
+    private string refModelDir => refIngrediantsDir + entityReferenceFolder;
+    private string refSeedbagTextureDir => string.Format("{0}{1}{2}", refResourceDir, "Plants/SeedBag_Textures/", entityReferenceFolder);
 
     private string serverDir => outputPath + "/Server";
     private string languageDir => serverDir + "/Languages";
@@ -54,8 +56,8 @@ public class EntityDuplicationUI : MonoBehaviour
     private string seedbagTextureDir => newResourceDir + "/" + entityName + "_Seedbag.png";
     private string eternalSeedbagTextureDir => newResourceDir + "/" + entityName + "_Eternal_Seedbag.png";
 
-    private string modelExtension => ".blockymodel";
-    private string modelFile => "{\n  \"lod\": \"auto\",\n  \"nodes\": []\n}";
+    const string eternalString = "_Eternal.json";
+    const string modelExtension = ".blockymodel";
 
     public void Start()
     {
@@ -165,6 +167,36 @@ public class EntityDuplicationUI : MonoBehaviour
                     if (!text.Contains("items." + uniqueID + ".description"))
                     {
                         sw.WriteLine("items." + uniqueID + ".description = '");
+                    }
+
+                    if (!text.Contains("items." + uniqueID + "_Plant.name"))
+                    {
+                        sw.WriteLine("items." + uniqueID + "_Plant.name = '");
+                    }
+
+                    if (!text.Contains("items." + uniqueID + "_Plant.description"))
+                    {
+                        sw.WriteLine("items." + uniqueID + "_Plant.description = '");
+                    }
+
+                    if (!text.Contains("items." + uniqueID + "_Seeds.name"))
+                    {
+                        sw.WriteLine("items." + uniqueID + "_Seeds.name = '");
+                    }
+
+                    if (!text.Contains("items." + uniqueID + "_Seeds.description"))
+                    {
+                        sw.WriteLine("items." + uniqueID + "_Seeds.description = '");
+                    }
+
+                    if (!text.Contains("items." + uniqueID + "_Seeds_Eternal.name"))
+                    {
+                        sw.WriteLine("items." + uniqueID + "_Seeds_Eternal.name = '");
+                    }
+
+                    if (!text.Contains("items." + uniqueID + "_Seeds_Eternal.description"))
+                    {
+                        sw.WriteLine("items." + uniqueID + "_Seeds_Eternal.description = '");
                     }
                 }
             }
@@ -284,7 +316,7 @@ public class EntityDuplicationUI : MonoBehaviour
 
             if (!File.Exists(seedbagTextureDir))
             {
-                File.Create(seedbagTextureDir);
+                File.Copy(refSeedbagTextureDir + ".png", seedbagTextureDir, false);
             }
         }
 
@@ -325,45 +357,33 @@ public class EntityDuplicationUI : MonoBehaviour
 
             if (!File.Exists(eternalSeedbagTextureDir))
             {
-                File.Create(eternalSeedbagTextureDir);
+                File.Copy(refSeedbagTextureDir + "_Eternal.png", eternalSeedbagTextureDir, false);
             }
         }
 
         if (!File.Exists(newModelDir + "_Texture.png"))
         {
-            File.Create(newModelDir + "_Texture.png");
+            File.Copy(refModelDir + "_Texture.png", newModelDir + "_Texture.png", false);
         }
 
         if (generateModels)
         {
             if (!File.Exists(newModelDir + modelExtension))
             {
-                using (FileStream fs = new FileStream(newModelDir + modelExtension, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-                {
-                    using (StreamWriter sw = new StreamWriter(fs))
-                    {
-                        sw.Write(modelFile);
-                    }
-                }
+                File.Copy(refModelDir + modelExtension, newModelDir + modelExtension, false);
             }
 
             for (int i = 0; i <= cropStage; i++)
             {
-                var modelStage = newModelDir + string.Format("_0{0}", i + 1) + modelExtension;
+                var stageIteration = string.Format("_0{0}", i + 1);
+                var modelStage = newModelDir + stageIteration + modelExtension;
 
                 if (!File.Exists(modelStage))
                 {
-                    using (FileStream fs = new FileStream(modelStage, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-                    {
-                        using (StreamWriter sw = new StreamWriter(fs))
-                        {
-                            sw.Write(modelFile);
-                        }
-                    }
+                    File.Copy(refModelDir + stageIteration + modelExtension, modelStage, false);
                 }
             }
         }
-        
 
         successText.SetActive(true);
         yield return new WaitForSeconds(2);
