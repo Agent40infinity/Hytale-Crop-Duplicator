@@ -14,6 +14,9 @@ public class EntityDuplicationUI : MonoBehaviour
     public TMP_InputField entityRefInput;
     public TMP_InputField entityOutputInput;
 
+    public TMP_Dropdown rarityDropdown;
+    private List<string> qualitiesList = new List<string>();
+
     public GameObject successText;
 
     private string modName;
@@ -25,12 +28,14 @@ public class EntityDuplicationUI : MonoBehaviour
 
     private string entityReference;
     private string outputPath;
-    private bool generateModels = true;
+    private bool copyRarity = true;
     private int cropType = 0;
     private int cropStage = 4;
+    private int qualityIndex = 0;
 
     private string entityReferenceFolder => entityReference.Split("\\").Last().Replace("Plant_Crop_", "").Replace("_Item.json", "");
     private string assetsRefDir => entityReference.Split("\\Server\\")[0];
+    private string refRaritiesDir => assetsRefDir + "\\Server\\Item\\Qualities\\";
     private string refPlantDir => string.Format("{0}{1}{2}{3}{4}{5}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Crop_", entityReferenceFolder, "_Block");
     private string refSeedDir => string.Format("{0}{1}{2}{3}{4}", assetsRefDir, "/Server/Item/Items/Plant/Crop/", entityReferenceFolder, "/Plant_Seeds_", entityReferenceFolder);
     private string refDropsDir => string.Format("{0}{1}{2}{3}{4}", assetsRefDir, "/Server/Drops/Crop/", entityReferenceFolder, "/Drops_Plant_Crop_", entityReferenceFolder);
@@ -58,6 +63,7 @@ public class EntityDuplicationUI : MonoBehaviour
 
     const string eternalString = "_Eternal.json";
     const string modelExtension = ".blockymodel";
+    const string assetExtension = ".json";
 
     public void Start()
     {
@@ -68,8 +74,8 @@ public class EntityDuplicationUI : MonoBehaviour
     {
         modNameInput.text = modName = PlayerPrefs.GetString("ModName");
         entityNameInput.text = entityName = PlayerPrefs.GetString("EntityName");
-        entityRefInput.text = entityReference = PlayerPrefs.GetString("Reference");
-        entityOutputInput.text = outputPath = PlayerPrefs.GetString("OutputPath");
+        OnSuccessGetFile(new string[] { PlayerPrefs.GetString("Reference") });
+        OnSuccessGetFolder(new string[] { PlayerPrefs.GetString("OutputPath") });
     }
 
     public void OnDestroy()
@@ -84,11 +90,13 @@ public class EntityDuplicationUI : MonoBehaviour
 
     public void SetEntityName(string name) { entityName = name; }
 
-    public void ToggleModels(bool toggle) { generateModels = toggle; }
-
     public void CropType(int type) { cropType = type; }
 
     public void CropStage(int stage) { cropStage = stage + 1; }
+
+    public void SetQuality(int index) { qualityIndex = index; }
+
+    public void ToggleCopyRarity(bool toggle) { copyRarity = toggle; }
 
     public void GetReferenceObj(string _)
     {
@@ -104,6 +112,20 @@ public class EntityDuplicationUI : MonoBehaviour
     {
         entityReference = filePath[0];
         entityRefInput.text = entityReference;
+
+        qualitiesList.Clear();
+        rarityDropdown.ClearOptions();
+
+        var files = Directory.GetFiles(refRaritiesDir, "*.json", SearchOption.TopDirectoryOnly).ToList();
+
+        foreach (var file in files)
+        {
+            qualitiesList.Add(file.Replace(refRaritiesDir, "").Replace(assetExtension, ""));
+        }
+
+        rarityDropdown.AddOptions(qualitiesList);
+
+        rarityDropdown.gameObject.transform.parent.gameObject.SetActive(!string.IsNullOrEmpty(entityReference));
     }
 
     public void GetOutputPath(string _)
@@ -192,7 +214,7 @@ public class EntityDuplicationUI : MonoBehaviour
             }
         }
 
-        if (!Directory.Exists(plantsDir))
+        if (!Directory.Exists(plantsDir)) 
         {
             Directory.CreateDirectory(plantsDir);
         }
@@ -212,7 +234,7 @@ public class EntityDuplicationUI : MonoBehaviour
             Directory.CreateDirectory(newResourceDir);
         }
 
-        var itemPath = Path.Combine(itemsDir, uniqueID) + ".json";
+        var itemPath = Path.Combine(itemsDir, uniqueID) + assetExtension;
         var splitName = entityReference.Split("_");
         var itemNameNoTag = splitName[splitName.Length - 2];
 
@@ -232,6 +254,8 @@ public class EntityDuplicationUI : MonoBehaviour
                     text = InsertBetween(text, "\"Name\": \"server.items.", ".name\",", uniqueID);
                     text = InsertBetween(text, "\"Description\": \"server.items.", ".description\"", uniqueID);
 
+                    text = InsertBetween(text, "\"Quality\": \"", "\",", qualitiesList[qualityIndex]);
+
                     text = InsertBetween(text, "\"Texture\": \"Resources/", "_Texture.png\",", entityNameFolder + "/"  + entityName);
                     text = InsertBetween(text, "Model\": \"Resources/", ".blockymodel\",", entityNameFolder + "/" + entityName);
 
@@ -246,14 +270,14 @@ public class EntityDuplicationUI : MonoBehaviour
 
         if (cropType == 0 || cropType == 1) // Normal Crop
         {
-            if (!File.Exists(createdPlantDir + ".json"))
+            if (!File.Exists(createdPlantDir + assetExtension))
             {
-                File.Copy(refPlantDir + ".json", createdPlantDir + ".json", false);
+                File.Copy(refPlantDir + assetExtension, createdPlantDir + assetExtension, false);
             }
 
-            if (!File.Exists(createdSeedsDir + ".json"))
+            if (!File.Exists(createdSeedsDir + assetExtension))
             {
-                File.Copy(refSeedDir + ".json", createdSeedsDir + ".json", false);
+                File.Copy(refSeedDir + assetExtension, createdSeedsDir + assetExtension, false);
             }
 
             if (!File.Exists(createdDropDir + "_Block.json"))
@@ -263,9 +287,9 @@ public class EntityDuplicationUI : MonoBehaviour
 
             for (int i = 1; i <= cropStage; i++)
             {
-                if (!File.Exists(createdDropDir + "_Stage" + i + ".json"))
+                if (!File.Exists(createdDropDir + "_Stage" + i + assetExtension))
                 {
-                    File.Copy(refDropsDir + "_Stage" + i + ".json", createdDropDir + "_Stage" + i + ".json", false);
+                    File.Copy(refDropsDir + "_Stage" + i + assetExtension, createdDropDir + "_Stage" + i + assetExtension, false);
                 }
             }
 
@@ -304,9 +328,9 @@ public class EntityDuplicationUI : MonoBehaviour
 
             for (int i = 1; i <= cropStage; i++)
             {
-                if (!File.Exists(createdDropDir + "_Eternal_Stage" + i + ".json"))
+                if (!File.Exists(createdDropDir + "_Eternal_Stage" + i + assetExtension))
                 {
-                    File.Copy(refDropsDir + "_Eternal_Stage" + i + ".json", createdDropDir + "_Eternal_Stage" + i + ".json", false);
+                    File.Copy(refDropsDir + "_Eternal_Stage" + i + assetExtension, createdDropDir + "_Eternal_Stage" + i + assetExtension, false);
                 }
             }
 
@@ -331,22 +355,19 @@ public class EntityDuplicationUI : MonoBehaviour
             File.Copy(refModelDir + "_Texture.png", newModelDir + "_Texture.png", false);
         }
 
-        if (generateModels)
+        if (!File.Exists(newModelDir + modelExtension))
         {
-            if (!File.Exists(newModelDir + modelExtension))
-            {
-                File.Copy(refModelDir + modelExtension, newModelDir + modelExtension, false);
-            }
+            File.Copy(refModelDir + modelExtension, newModelDir + modelExtension, false);
+        }
 
-            for (int i = 0; i <= cropStage; i++)
-            {
-                var stageIteration = string.Format("_0{0}", i + 1);
-                var modelStage = newModelDir + stageIteration + modelExtension;
+        for (int i = 0; i <= cropStage; i++)
+        {
+            var stageIteration = string.Format("_0{0}", i + 1);
+            var modelStage = newModelDir + stageIteration + modelExtension;
 
-                if (!File.Exists(modelStage))
-                {
-                    File.Copy(refModelDir + stageIteration + modelExtension, modelStage, false);
-                }
+            if (!File.Exists(modelStage))
+            {
+                File.Copy(refModelDir + stageIteration + modelExtension, modelStage, false);
             }
         }
 
