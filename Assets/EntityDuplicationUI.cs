@@ -61,6 +61,15 @@ public class EntityDuplicationUI : MonoBehaviour
     private string seedbagTextureDir => newResourceDir + "/" + entityName + "_Seedbag.png";
     private string eternalSeedbagTextureDir => newResourceDir + "/" + entityName + "_Eternal_Seedbag.png";
 
+    private string langItemName => "items." + uniqueID + ".name";
+    private string langItemDesc => "items." + uniqueID + ".description";
+    private string langPlantName => "items." + uniqueID + "_Plant.name";
+    private string langPlantDesc => "items." + uniqueID + "_Plant.description";
+    private string langSeedsName => "items." + uniqueID + "_Seeds.name";
+    private string langSeedsDesc => "items." + uniqueID + "_Seeds.description";
+    private string langSeedsEternalName => "items." + uniqueID + "_Seeds_Eternal.name";
+    private string langSeedsEternalDesc => "items." + uniqueID + "_Seeds_Eternal.description";
+
     const string eternalString = "_Eternal.json";
     const string modelExtension = ".blockymodel";
     const string assetExtension = ".json";
@@ -171,44 +180,44 @@ public class EntityDuplicationUI : MonoBehaviour
                 {
                     var text = sr.ReadToEnd();
 
-                    if (!text.Contains("items." + uniqueID + ".name"))
+                    if (!text.Contains(langItemName))
                     {
-                        sw.WriteLine("items." + uniqueID + ".name = '");
+                        sw.WriteLine(langItemName + " = '");
                     }
 
-                    if (!text.Contains("items." + uniqueID + ".description"))
+                    if (!text.Contains(langItemDesc))
                     {
-                        sw.WriteLine("items." + uniqueID + ".description = '");
+                        sw.WriteLine(langItemDesc + " = '");
                     }
 
-                    if (!text.Contains("items." + uniqueID + "_Plant.name"))
+                    if (!text.Contains(langPlantName))
                     {
-                        sw.WriteLine("items." + uniqueID + "_Plant.name = '");
+                        sw.WriteLine(langPlantName + " = '");
                     }
 
-                    if (!text.Contains("items." + uniqueID + "_Plant.description"))
+                    if (!text.Contains(langPlantDesc))
                     {
-                        sw.WriteLine("items." + uniqueID + "_Plant.description = '");
+                        sw.WriteLine(langPlantDesc + " = '");
                     }
 
-                    if (!text.Contains("items." + uniqueID + "_Seeds.name"))
+                    if (!text.Contains(langSeedsName))
                     {
-                        sw.WriteLine("items." + uniqueID + "_Seeds.name = '");
+                        sw.WriteLine(langSeedsName + " = '");
                     }
 
-                    if (!text.Contains("items." + uniqueID + "_Seeds.description"))
+                    if (!text.Contains(langSeedsDesc))
                     {
-                        sw.WriteLine("items." + uniqueID + "_Seeds.description = '");
+                        sw.WriteLine(langSeedsDesc + " = '");
                     }
 
-                    if (!text.Contains("items." + uniqueID + "_Seeds_Eternal.name"))
+                    if (!text.Contains(langSeedsEternalName))
                     {
-                        sw.WriteLine("items." + uniqueID + "_Seeds_Eternal.name = '");
+                        sw.WriteLine(langSeedsEternalName + " = '");
                     }
 
-                    if (!text.Contains("items." + uniqueID + "_Seeds_Eternal.description"))
+                    if (!text.Contains(langSeedsEternalDesc))
                     {
-                        sw.WriteLine("items." + uniqueID + "_Seeds_Eternal.description = '");
+                        sw.WriteLine(langSeedsEternalDesc + " = '");
                     }
                 }
             }
@@ -251,8 +260,8 @@ public class EntityDuplicationUI : MonoBehaviour
 
                 using (StreamWriter sw = new StreamWriter(fs))
                 {
-                    text = InsertBetween(text, "\"Name\": \"server.items.", ".name\",", uniqueID);
-                    text = InsertBetween(text, "\"Description\": \"server.items.", ".description\"", uniqueID);
+                    text = InsertBetween(text, "\"Name\": \"server.", "\",", langItemName);
+                    text = InsertBetween(text, "\"Description\": \"server.", "\"", langItemDesc);
 
                     text = InsertBetween(text, "\"Quality\": \"", "\",", qualitiesList[qualityIndex]);
 
@@ -280,9 +289,9 @@ public class EntityDuplicationUI : MonoBehaviour
                 File.Copy(refSeedDir + assetExtension, createdSeedsDir + assetExtension, false);
             }
 
-            if (!File.Exists(createdDropDir + "_Block.json"))
+            if (!File.Exists(createdDropDir + "_Plant.json"))
             {
-                File.Copy(refDropsDir + "_Block.json", createdDropDir + "_Block.json", false);
+                File.Copy(refDropsDir + "_Block.json", createdDropDir + "_Plant.json", false);
             }
 
             for (int i = 1; i <= cropStage; i++)
@@ -321,9 +330,9 @@ public class EntityDuplicationUI : MonoBehaviour
                 File.Copy(refSeedDir + eternalString, createdSeedsDir + eternalString, false);
             }
 
-            if (!File.Exists(createdDropDir + "_Eternal_Block.json"))
+            if (!File.Exists(createdDropDir + "_Eternal_Plant.json"))
             {
-                File.Copy(refDropsDir + "_Eternal_Block.json", createdDropDir + "_Eternal_Block.json", false);
+                File.Copy(refDropsDir + "_Eternal_Block.json", createdDropDir + "_Eternal_Plant.json", false);
             }
 
             for (int i = 1; i <= cropStage; i++)
