@@ -257,6 +257,7 @@ public class EntityDuplicationUI : MonoBehaviour
             using (StreamReader sr = new StreamReader(fs))
             {
                 var text = sr.ReadToEnd();
+                fs.Position = 0;
 
                 using (StreamWriter sw = new StreamWriter(fs))
                 {
