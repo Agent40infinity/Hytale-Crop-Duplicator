@@ -43,15 +43,21 @@ public class EntityDuplicationUI : MonoBehaviour
     private string refIngrediantsDir => refResourceDir + "Ingredients/";
     private string refModelDir => refIngrediantsDir + entityReferenceFolder;
     private string refSeedbagTextureDir => string.Format("{0}{1}{2}", refResourceDir, "Plants/SeedBag_Textures/", entityReferenceFolder);
+    private string refTemplateDir => assetsRefDir + "/Server/Item/Items/Plant/Crop/_Template/";
+    private string refTemplateItem => string.Format("{0}{1}{2}", refTemplateDir, "Template_Crop_Item", assetExtension);
+    private string refTemplateSeeds => string.Format("{0}{1}{2}", refTemplateDir, "Template_Seeds", assetExtension);
+    private string refTemplatePlant => string.Format("{0}{1}{2}", refTemplateDir, "Template_Crop_Block", assetExtension);
 
     private string serverDir => outputPath + "/Server";
     private string languageDir => serverDir + "/Languages";
     private string enDir => languageDir + "/en-US";
     private string serverLang => enDir + "/server.lang";
     private string itemDir => serverDir + "/Item";
+    private string categoryDir => itemDir + "/Category/CreativeLibrary/";
     private string itemsDir => itemDir + "/Items";
     private string plantsDir => itemsDir + "/Plants";
-    private string seedsDir => itemsDir + "/Seeds"; 
+    private string seedsDir => itemsDir + "/Seeds";
+    private string templatesDir => itemsDir + "/_Template";
     private string dropsDir => serverDir + "/Drops";
     private string newDropDir => dropsDir + "/" + entityNameFolder;
     private string commonDir => outputPath + "/Common";
@@ -180,6 +186,26 @@ public class EntityDuplicationUI : MonoBehaviour
                 {
                     var text = sr.ReadToEnd();
 
+                    if (!text.Contains(modName + ".name"))
+                    {
+                        sw.WriteLine(modName + ".name = " + modName.Replace("_", " "));
+                    }
+
+                    if (!text.Contains(Strings.LangUIFood(modName)))
+                    {
+                        sw.WriteLine(Strings.LangUIFood(modName) + " = Food");
+                    }
+
+                    if (!text.Contains(Strings.LangUISeeds(modName)))
+                    {
+                        sw.WriteLine(Strings.LangUISeeds(modName) + " = Seeds");
+                    }
+
+                    if (!text.Contains(Strings.LangUIPlants(modName)))
+                    {
+                        sw.WriteLine(Strings.LangUIPlants(modName) + " = Plants");
+                    }
+
                     if (!text.Contains(langItemName))
                     {
                         sw.WriteLine(langItemName + " = '");
@@ -219,6 +245,94 @@ public class EntityDuplicationUI : MonoBehaviour
                     {
                         sw.WriteLine(langSeedsEternalDesc + " = '");
                     }
+                }
+            }
+        }
+
+        if (!Directory.Exists(categoryDir))
+        {
+            Directory.CreateDirectory(categoryDir);
+        }
+
+        if (!File.Exists(categoryDir + modName + assetExtension))
+        {
+            using (FileStream fs = new FileStream(categoryDir + modName + assetExtension, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    sw.Write(Strings.CategoryTemplate(modName));
+                }
+            }
+        }
+
+        if (!Directory.Exists(templatesDir))
+        {
+            Directory.CreateDirectory(templatesDir);
+        }
+
+        var templateFood = templatesDir + "/" + modName + "_Template_Food" + assetExtension;
+        var templateSeeds = templatesDir + "/" + modName + "_Template_Seeds" + assetExtension;
+        var templatePlant = templatesDir + "/" + modName + "_Template_Plant" + assetExtension;
+
+        if (!File.Exists(templateFood))
+        {
+            File.Copy(refTemplateItem, templateFood, false);
+        }
+
+        using (FileStream fs = new FileStream(templateFood, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+        {
+            using (StreamReader sr = new StreamReader(fs))
+            {
+                var text = sr.ReadToEnd();
+                fs.Position = 0;
+
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    text = InsertBetween(text, "\"Categories\": [\n    ", "\n  ],", "\"" + modName + ".Food\"");
+
+                    sw.Write(text);
+                }
+            }
+        }
+
+        if (!File.Exists(templateSeeds))
+        {
+            File.Copy(refTemplateSeeds, templateSeeds, false);
+        }
+
+        using (FileStream fs = new FileStream(templateSeeds, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+        {
+            using (StreamReader sr = new StreamReader(fs))
+            {
+                var text = sr.ReadToEnd();
+                fs.Position = 0;
+
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    text = InsertBetween(text, "\"Categories\": [\n    ", "\n  ],", "\"" + modName + ".Seeds\"");
+
+                    sw.Write(text);
+                }
+            }
+        }
+
+        if (!File.Exists(templatePlant))
+        {
+            File.Copy(refTemplatePlant, templatePlant, false);
+        }
+
+        using (FileStream fs = new FileStream(templatePlant, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+        {
+            using (StreamReader sr = new StreamReader(fs))
+            {
+                var text = sr.ReadToEnd();
+                fs.Position = 0;
+
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    text = InsertBetween(text, "\"Categories\": [\n    ", "\n  ],", "\"" + modName + ".Plants\"");
+
+                    sw.Write(text);
                 }
             }
         }
@@ -264,6 +378,7 @@ public class EntityDuplicationUI : MonoBehaviour
                     text = InsertBetween(text, "\"Name\": \"server.", "\",", langItemName);
                     text = InsertBetween(text, "\"Description\": \"server.", "\"", langItemDesc);
 
+                    text = InsertBetween(text, "\"Parent\": \"", "\",", modName + "_Template_Food");
                     text = InsertBetween(text, "\"Quality\": \"", "\",", qualitiesList[qualityIndex]);
 
                     text = InsertBetween(text, "\"Texture\": \"Resources/", "_Texture.png\",", entityNameFolder + "/"  + entityName);
@@ -391,4 +506,12 @@ public class EntityDuplicationUI : MonoBehaviour
         Regex regex = new Regex(string.Format("{0}(.*?){1}", Regex.Escape(startTag), Regex.Escape(endTag)), RegexOptions.RightToLeft);
         return regex.Replace(sourceString, startTag + insert + endTag);
     }
+}
+
+public class Strings
+{
+    public static string LangUIFood(string modName) => "ui." + modName + ".Food";
+    public static string LangUISeeds(string modName) => "ui." + modName + ".Seeds";
+    public static string LangUIPlants(string modName) => "ui." + modName + ".Plants";
+    public static string CategoryTemplate(string modName) => "{\n  \"Icon\": \"Icons/ItemCategories/Natural-Vegetal.png\",\n  \"Order\": 2,\n  \"Children\": [\n    {\n      \"Id\": \"Food\",\n      \"Name\": \"server." + LangUIFood(modName) + "\",\n      \"Icon\": \"Icons/ItemCategories/Items-Ingredients.png\"\n    },\n    {\n      \"Id\": \"Seeds\",\n      \"Name\": \"server." + LangUISeeds(modName) + "\",\n      \"Icon\": \"Icons/ItemCategories/Items-Potion.png\"\n    },\n    {\n      \"Id\": \"Plants\",\n      \"Name\": \"server." + LangUIPlants(modName) + "\",\n      \"Icon\": \"Icons/ItemCategories/Natural-Vegetal.png\"\n    }\n  ]\n}";
 }
