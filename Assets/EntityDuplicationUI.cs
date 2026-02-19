@@ -400,9 +400,48 @@ public class EntityDuplicationUI : MonoBehaviour
                 File.Copy(refPlantDir + assetExtension, createdPlantDir + assetExtension, false);
             }
 
+            using (FileStream fs = new FileStream(createdPlantDir + assetExtension, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    var text = sr.ReadToEnd();
+                    text = text.Replace("\r", "");
+                    fs.Position = 0;
+
+                    using (StreamWriter sw = new StreamWriter(fs))
+                    {
+                        text = InsertBetween(text, "\"Name\": \"server.", "\",", langPlantName);
+                        text = InsertBetween(text, "\"Parent\": \"", "\",", modName + "_Template_Plant");
+
+                        sw.Write(text);
+                    }
+                }
+            }
+
             if (!File.Exists(createdSeedsDir + assetExtension))
             {
                 File.Copy(refSeedDir + assetExtension, createdSeedsDir + assetExtension, false);
+            }
+
+            using (FileStream fs = new FileStream(createdSeedsDir + assetExtension, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    var text = sr.ReadToEnd();
+                    text = text.Replace("\r", "");
+                    fs.Position = 0;
+
+                    using (StreamWriter sw = new StreamWriter(fs))
+                    {
+                        text = InsertBetween(text, "\"Name\": \"server.", "\",", langSeedsName);
+                        text = InsertBetween(text, "\"Description\": \"server.", "\"", langSeedsDesc);
+
+                        text = InsertBetween(text, "\"Parent\": \"", "\",", modName + "_Template_Seeds");
+                        text = InsertBetween(text, "\"Quality\": \"", "\",", qualitiesList[qualityIndex]);
+
+                        sw.Write(text);
+                    }
+                }
             }
 
             if (!File.Exists(createdDropDir + "_Plant.json"))
@@ -441,9 +480,48 @@ public class EntityDuplicationUI : MonoBehaviour
                 File.Copy(refPlantDir + eternalString, createdPlantDir + eternalString, false);
             }
 
+            using (FileStream fs = new FileStream(createdPlantDir + eternalString, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    var text = sr.ReadToEnd();
+                    text = text.Replace("\r", "");
+                    fs.Position = 0;
+
+                    using (StreamWriter sw = new StreamWriter(fs))
+                    {
+                        text = InsertBetween(text, "\"Name\": \"server.", "\",", langPlantName);
+                        text = InsertBetween(text, "\"Parent\": \"", "\",", uniqueID + "_Plant");
+
+                        sw.Write(text);
+                    }
+                }
+            }
+
             if (!File.Exists(createdSeedsDir + eternalString))
             {
                 File.Copy(refSeedDir + eternalString, createdSeedsDir + eternalString, false);
+            }
+
+            using (FileStream fs = new FileStream(createdSeedsDir + eternalString, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    var text = sr.ReadToEnd();
+                    text = text.Replace("\r", "");
+                    fs.Position = 0;
+
+                    using (StreamWriter sw = new StreamWriter(fs))
+                    {
+                        text = InsertBetween(text, "\"Name\": \"server.", "\",", langSeedsEternalName);
+                        text = InsertBetween(text, "\"Description\": \"server.", "\"", langSeedsEternalDesc);
+
+                        text = InsertBetween(text, "\"Quality\": \"", "\",", qualitiesList[qualityIndex]);
+                        text = InsertBetween(text, "\"Categories\": [\n    ", "\n  ],", "\"" + modName + ".Seeds\"");
+
+                        sw.Write(text);
+                    }
+                }
             }
 
             if (!File.Exists(createdDropDir + "_Eternal_Plant.json"))
