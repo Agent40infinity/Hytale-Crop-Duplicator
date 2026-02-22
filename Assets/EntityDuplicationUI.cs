@@ -22,16 +22,20 @@ public class EntityDuplicationUI : MonoBehaviour
     private string modName;
     private string entityName;
 
-    private string uniqueID => string.Format("{0}_{1}", modName, entityName);
-    private string entityNameFolder => entityName.Replace("_", "");
-    private string modNameCategory => modName.Replace("_", "");
-
     private string entityReference;
     private string outputPath;
     private bool copyRarity = true;
     private int cropType = 0;
     private int cropStage = 4;
     private int qualityIndex = 0;
+
+    private string uniqueID => string.Format("{0}_{1}", modName, entityName);
+    private string seedID => string.Format("{0}_{1}", modName, seedName);
+    private string plantID => string.Format("{0}_{1}", modName, plantName);
+    private string seedName => string.Format("{0}_{1}", entityName, "Seeds");
+    private string plantName => string.Format("{0}_{1}", entityName, "Plant");
+    private string entityNameFolder => entityName.Replace("_", "");
+    private string modNameCategory => modName.Replace("_", "");
 
     private string entityReferenceFolder => entityReference.Split("\\").Last().Replace("Plant_Crop_", "").Replace("_Item.json", "");
     private string assetsRefDir => entityReference.Split("\\Server\\")[0];
@@ -43,6 +47,7 @@ public class EntityDuplicationUI : MonoBehaviour
     private string refIngrediantsDir => refResourceDir + "Ingredients/";
     private string refModelDir => refIngrediantsDir + entityReferenceFolder;
     private string refSeedbagTextureDir => string.Format("{0}{1}{2}", refResourceDir, "Plants/SeedBag_Textures/", entityReferenceFolder);
+
     private string refTemplateDir => assetsRefDir + "/Server/Item/Items/Plant/Crop/_Template/";
     private string refTemplateItem => string.Format("{0}{1}{2}", refTemplateDir, "Template_Crop_Item", assetExtension);
     private string refTemplateSeeds => string.Format("{0}{1}{2}", refTemplateDir, "Template_Seeds", assetExtension);
@@ -67,18 +72,21 @@ public class EntityDuplicationUI : MonoBehaviour
     private string seedbagTextureDir => newResourceDir + "/" + entityName + "_Seedbag.png";
     private string eternalSeedbagTextureDir => newResourceDir + "/" + entityName + "_Eternal_Seedbag.png";
 
-    private string langItemName => "items." + uniqueID + ".name";
-    private string langItemDesc => "items." + uniqueID + ".description";
-    private string langPlantName => "items." + uniqueID + "_Plant.name";
-    private string langPlantDesc => "items." + uniqueID + "_Plant.description";
-    private string langSeedsName => "items." + uniqueID + "_Seeds.name";
-    private string langSeedsDesc => "items." + uniqueID + "_Seeds.description";
-    private string langSeedsEternalName => "items." + uniqueID + "_Seeds_Eternal.name";
-    private string langSeedsEternalDesc => "items." + uniqueID + "_Seeds_Eternal.description";
+    private string langItemName => "items." + uniqueID + langName;
+    private string langItemDesc => "items." + uniqueID + langDescription;
+    private string langPlantName => "items." + plantID + langName;
+    private string langPlantDesc => "items." + plantID + langDescription;
+    private string langSeedsName => "items." + seedID + langName;
+    private string langSeedsDesc => "items." + seedID + langDescription;
+    private string langSeedsEternalName => "items." + seedID + eternalString + langName;
+    private string langSeedsEternalDesc => "items." + seedID + eternalString + langDescription;
 
-    const string eternalString = "_Eternal.json";
+    const string langName = ".name";
+    const string langDescription = ".description";
     const string modelExtension = ".blockymodel";
     const string assetExtension = ".json";
+    const string eternalString = "_Eternal";
+    const string eternalExtension = eternalString + assetExtension;
 
     public void Start()
     {
@@ -208,42 +216,42 @@ public class EntityDuplicationUI : MonoBehaviour
 
                     if (!text.Contains(langItemName))
                     {
-                        sw.WriteLine(langItemName + " = '");
+                        sw.WriteLine(langItemName + " = " + entityName.Replace("_", " "));
                     }
 
                     if (!text.Contains(langItemDesc))
                     {
-                        sw.WriteLine(langItemDesc + " = '");
+                        sw.WriteLine(langItemDesc + " = .");
                     }
 
                     if (!text.Contains(langPlantName))
                     {
-                        sw.WriteLine(langPlantName + " = '");
+                        sw.WriteLine(langPlantName + " = " + plantName.Replace("_", " "));
                     }
 
                     if (!text.Contains(langPlantDesc))
                     {
-                        sw.WriteLine(langPlantDesc + " = '");
+                        sw.WriteLine(langPlantDesc + " = .");
                     }
 
                     if (!text.Contains(langSeedsName))
                     {
-                        sw.WriteLine(langSeedsName + " = '");
+                        sw.WriteLine(langSeedsName + " = " + seedName.Replace("_", " "));
                     }
 
                     if (!text.Contains(langSeedsDesc))
                     {
-                        sw.WriteLine(langSeedsDesc + " = '");
+                        sw.WriteLine(langSeedsDesc + " = .");
                     }
 
                     if (!text.Contains(langSeedsEternalName))
                     {
-                        sw.WriteLine(langSeedsEternalName + " = '");
+                        sw.WriteLine(langSeedsEternalName + " = " + seedName.Replace("_", " ") + string.Format(" ({0})", eternalString.Replace("_", "")));
                     }
 
                     if (!text.Contains(langSeedsEternalDesc))
                     {
-                        sw.WriteLine(langSeedsEternalDesc + " = '");
+                        sw.WriteLine(langSeedsEternalDesc + " = .");
                     }
                 }
             }
@@ -410,7 +418,7 @@ public class EntityDuplicationUI : MonoBehaviour
 
                     using (StreamWriter sw = new StreamWriter(fs))
                     {
-                        text = InsertBetween(text, "\"Name\": \"server.", "\",", langPlantName);
+                        text = InsertBetween(text, "\"Name\": \"server.", "\"", langPlantName);
                         text = InsertBetween(text, "\"Parent\": \"", "\",", modName + "_Template_Plant");
 
                         sw.Write(text);
@@ -475,12 +483,12 @@ public class EntityDuplicationUI : MonoBehaviour
 
         if (cropType == 0 || cropType == 2) // Eternal Crop
         {
-            if (!File.Exists(createdPlantDir + eternalString))
+            if (!File.Exists(createdPlantDir + eternalExtension))
             {
-                File.Copy(refPlantDir + eternalString, createdPlantDir + eternalString, false);
+                File.Copy(refPlantDir + eternalExtension, createdPlantDir + eternalExtension, false);
             }
 
-            using (FileStream fs = new FileStream(createdPlantDir + eternalString, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fs = new FileStream(createdPlantDir + eternalExtension, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamReader sr = new StreamReader(fs))
                 {
@@ -490,7 +498,7 @@ public class EntityDuplicationUI : MonoBehaviour
 
                     using (StreamWriter sw = new StreamWriter(fs))
                     {
-                        text = InsertBetween(text, "\"Name\": \"server.", "\",", langPlantName);
+                        text = InsertBetween(text, "\"Name\": \"server.", "\"", langPlantName);
                         text = InsertBetween(text, "\"Parent\": \"", "\",", uniqueID + "_Plant");
 
                         sw.Write(text);
@@ -498,12 +506,12 @@ public class EntityDuplicationUI : MonoBehaviour
                 }
             }
 
-            if (!File.Exists(createdSeedsDir + eternalString))
+            if (!File.Exists(createdSeedsDir + eternalExtension))
             {
-                File.Copy(refSeedDir + eternalString, createdSeedsDir + eternalString, false);
+                File.Copy(refSeedDir + eternalExtension, createdSeedsDir + eternalExtension, false);
             }
 
-            using (FileStream fs = new FileStream(createdSeedsDir + eternalString, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fs = new FileStream(createdSeedsDir + eternalExtension, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamReader sr = new StreamReader(fs))
                 {
