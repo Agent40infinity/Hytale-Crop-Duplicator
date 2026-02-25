@@ -7716,6 +7716,7 @@ MonoBehaviour:
   entityNameInput: {fileID: 435654013}
   entityRefInput: {fileID: 1308006656}
   entityOutputInput: {fileID: 1227934739}
+  cropStagesDropdown: {fileID: 150948932}
   rarityDropdown: {fileID: 309464441}
   successText: {fileID: 1487381302}
 --- !u!1 &2034636606

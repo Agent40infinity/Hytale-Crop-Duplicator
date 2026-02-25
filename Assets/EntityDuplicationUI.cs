@@ -14,6 +14,8 @@ public class EntityDuplicationUI : MonoBehaviour
     public TMP_InputField entityRefInput;
     public TMP_InputField entityOutputInput;
 
+    public TMP_Dropdown cropStagesDropdown;
+
     public TMP_Dropdown rarityDropdown;
     private List<string> qualitiesList = new List<string>();
 
@@ -99,6 +101,7 @@ public class EntityDuplicationUI : MonoBehaviour
         entityNameInput.text = entityName = PlayerPrefs.GetString("EntityName");
         OnSuccessGetFile(new string[] { PlayerPrefs.GetString("Reference") });
         OnSuccessGetFolder(new string[] { PlayerPrefs.GetString("OutputPath") });
+        cropStagesDropdown.value = cropStage = PlayerPrefs.GetInt("cropStages");
     }
 
     public void OnDestroy()
@@ -107,6 +110,7 @@ public class EntityDuplicationUI : MonoBehaviour
         PlayerPrefs.SetString("EntityName", entityName);
         PlayerPrefs.SetString("Reference", entityReference);
         PlayerPrefs.SetString("OutputPath", outputPath);
+        PlayerPrefs.SetInt("cropStages", cropStage);
     }
 
     public void SetModName(string name) { modName = name; }
@@ -115,7 +119,7 @@ public class EntityDuplicationUI : MonoBehaviour
 
     public void CropType(int type) { cropType = type; }
 
-    public void CropStage(int stage) { cropStage = stage + 1; }
+    public void CropStage(int stage) { cropStage = stage; }
 
     public void SetQuality(int index) { qualityIndex = index; }
 
@@ -452,22 +456,14 @@ public class EntityDuplicationUI : MonoBehaviour
                 }
             }
 
-            if (!File.Exists(createdDropDir + "_Plant.json"))
+            for (int i = 0; i <= cropStage + 1; i++)
             {
-                File.Copy(refDropsDir + "_Block.json", createdDropDir + "_Plant.json", false);
-            }
+                var dropStageDir = createdDropDir + (i == 0 ? "_Plant" : "_Stage" + (i == cropStage + 1 ? "Final" : i)) + assetExtension;
 
-            for (int i = 1; i <= cropStage; i++)
-            {
-                if (!File.Exists(createdDropDir + "_Stage" + i + assetExtension))
+                if (!File.Exists(dropStageDir))
                 {
-                    File.Copy(refDropsDir + "_Stage" + i + assetExtension, createdDropDir + "_Stage" + i + assetExtension, false);
+                    File.Copy(refDropsDir + (i == 0 ? "_Block" : "_Stage" + (i == cropStage + 1 ? "Final" : i)) + assetExtension, dropStageDir, false);
                 }
-            }
-
-            if (!File.Exists(createdDropDir + "_StageFinal.json"))
-            {
-                File.Copy(refDropsDir + "_StageFinal.json", createdDropDir + "_StageFinal.json", false);
             }
 
             if (!File.Exists(createdDropDir + "_StageFinal_Harvest.json"))
@@ -532,22 +528,36 @@ public class EntityDuplicationUI : MonoBehaviour
                 }
             }
 
-            if (!File.Exists(createdDropDir + "_Eternal_Plant.json"))
+            for (int i = 0; i <= cropStage + 1; i++)
             {
-                File.Copy(refDropsDir + "_Eternal_Block.json", createdDropDir + "_Eternal_Plant.json", false);
-            }
+                var dropStageDir = createdDropDir + eternalString + (i == 0 ? "_Plant" : "_Stage" + (i == cropStage + 1 ? "Final" : i)) + assetExtension;
 
-            for (int i = 1; i <= cropStage; i++)
-            {
-                if (!File.Exists(createdDropDir + "_Eternal_Stage" + i + assetExtension))
+                if (!File.Exists(dropStageDir))
                 {
-                    File.Copy(refDropsDir + "_Eternal_Stage" + i + assetExtension, createdDropDir + "_Eternal_Stage" + i + assetExtension, false);
+                    var originDir = refDropsDir + eternalString + (i == 0 ? "_Block" : "_Stage" + (i == cropStage + 1 ? "Final" : i)) + assetExtension;
+                    File.Copy(originDir, dropStageDir, false);
                 }
-            }
 
-            if (!File.Exists(createdDropDir + "_Eternal_StageFinal.json"))
-            {
-                File.Copy(refDropsDir + "_Eternal_StageFinal.json", createdDropDir + "_Eternal_StageFinal.json", false);
+                using (FileStream fs = new FileStream(dropStageDir, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                {
+                    using (StreamReader sr = new StreamReader(fs))
+                    {
+                        var text = sr.ReadToEnd();
+                        text = text.Replace("\r", "");
+                        fs.Position = 0;
+
+                        using (StreamWriter sw = new StreamWriter(fs))
+                        {
+                            text = InsertBetween(text, "\"Name\": \"server.", "\",", langSeedsEternalName);
+                            text = InsertBetween(text, "\"Description\": \"server.", "\"", langSeedsEternalDesc);
+
+                            text = InsertBetween(text, "\"Quality\": \"", "\",", qualitiesList[qualityIndex]);
+                            text = InsertBetween(text, "\"Categories\": [\n    ", "\n  ],", "\"" + modName + ".Seeds\"");
+
+                            sw.Write(text);
+                        }
+                    }
+                }
             }
 
             if (!File.Exists(createdDropDir + "_Eternal_StageFinal_Harvest.json"))
