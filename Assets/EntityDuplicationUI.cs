@@ -28,8 +28,10 @@ public class EntityDuplicationUI : MonoBehaviour
     private string outputPath;
     private bool copyRarity = true;
     private int cropType = 0;
-    private int cropStage = 4;
+    private int cropStageIndex = 4;
     private int qualityIndex = 0;
+
+    private int cropStage => cropStageIndex + 1;
 
     private string uniqueID => string.Format("{0}_{1}", modName, entityName);
     private string seedID => string.Format("{0}_{1}", modName, seedName);
@@ -101,7 +103,7 @@ public class EntityDuplicationUI : MonoBehaviour
         entityNameInput.text = entityName = PlayerPrefs.GetString("EntityName");
         OnSuccessGetFile(new string[] { PlayerPrefs.GetString("Reference") });
         OnSuccessGetFolder(new string[] { PlayerPrefs.GetString("OutputPath") });
-        cropStagesDropdown.value = cropStage = PlayerPrefs.GetInt("cropStages");
+        cropStagesDropdown.value = cropStageIndex = PlayerPrefs.GetInt("cropStages");
     }
 
     public void OnDestroy()
@@ -110,7 +112,7 @@ public class EntityDuplicationUI : MonoBehaviour
         PlayerPrefs.SetString("EntityName", entityName);
         PlayerPrefs.SetString("Reference", entityReference);
         PlayerPrefs.SetString("OutputPath", outputPath);
-        PlayerPrefs.SetInt("cropStages", cropStage);
+        PlayerPrefs.SetInt("cropStages", cropStageIndex);
     }
 
     public void SetModName(string name) { modName = name; }
@@ -119,7 +121,7 @@ public class EntityDuplicationUI : MonoBehaviour
 
     public void CropType(int type) { cropType = type; }
 
-    public void CropStage(int stage) { cropStage = stage; }
+    public void CropStage(int stage) { cropStageIndex = stage; }
 
     public void SetQuality(int index) { qualityIndex = index; }
 
@@ -456,13 +458,33 @@ public class EntityDuplicationUI : MonoBehaviour
                 }
             }
 
-            for (int i = 0; i <= cropStage + 1; i++)
+            for (int i = 0; i <= cropStageIndex + 1; i++)
             {
-                var dropStageDir = createdDropDir + (i == 0 ? "_Plant" : "_Stage" + (i == cropStage + 1 ? "Final" : i)) + assetExtension;
+                var dropStageDir = createdDropDir + (i == 0 ? "_Plant" : "_Stage" + (i == cropStageIndex + 1 ? "Final" : i)) + assetExtension;
 
                 if (!File.Exists(dropStageDir))
                 {
-                    File.Copy(refDropsDir + (i == 0 ? "_Block" : "_Stage" + (i == cropStage + 1 ? "Final" : i)) + assetExtension, dropStageDir, false);
+                    File.Copy(refDropsDir + (i == 0 ? "_Block" : "_Stage" + (i == cropStageIndex + 1 ? "Final" : i)) + assetExtension, dropStageDir, false);
+                }
+
+                using (FileStream fs = new FileStream(dropStageDir, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                {
+                    using (StreamReader sr = new StreamReader(fs))
+                    {
+                        var text = sr.ReadToEnd();
+                        text = text.Replace("\r", "");
+                        fs.Position = 0;
+
+                        using (StreamWriter sw = new StreamWriter(fs))
+                        {
+                            if (i != cropStage)
+                            {
+                                text = InsertBetween(text, "\"ItemId\": \"", "\"", seedID);
+                            }
+
+                            sw.Write(text);
+                        }
+                    }
                 }
             }
 
@@ -528,13 +550,13 @@ public class EntityDuplicationUI : MonoBehaviour
                 }
             }
 
-            for (int i = 0; i <= cropStage + 1; i++)
+            for (int i = 0; i <= cropStage; i++)
             {
-                var dropStageDir = createdDropDir + eternalString + (i == 0 ? "_Plant" : "_Stage" + (i == cropStage + 1 ? "Final" : i)) + assetExtension;
+                var dropStageDir = createdDropDir + eternalString + (i == 0 ? "_Plant" : "_Stage" + (i == cropStage ? "Final" : i)) + assetExtension;
 
                 if (!File.Exists(dropStageDir))
                 {
-                    var originDir = refDropsDir + eternalString + (i == 0 ? "_Block" : "_Stage" + (i == cropStage + 1 ? "Final" : i)) + assetExtension;
+                    var originDir = refDropsDir + eternalString + (i == 0 ? "_Block" : "_Stage" + (i == cropStage ? "Final" : i)) + assetExtension;
                     File.Copy(originDir, dropStageDir, false);
                 }
 
@@ -548,11 +570,10 @@ public class EntityDuplicationUI : MonoBehaviour
 
                         using (StreamWriter sw = new StreamWriter(fs))
                         {
-                            text = InsertBetween(text, "\"Name\": \"server.", "\",", langSeedsEternalName);
-                            text = InsertBetween(text, "\"Description\": \"server.", "\"", langSeedsEternalDesc);
-
-                            text = InsertBetween(text, "\"Quality\": \"", "\",", qualitiesList[qualityIndex]);
-                            text = InsertBetween(text, "\"Categories\": [\n    ", "\n  ],", "\"" + modName + ".Seeds\"");
+                            if (i != cropStage)
+                            {
+                                text = InsertBetween(text, "\"ItemId\": \"", "\"", seedID + eternalString);
+                            }
 
                             sw.Write(text);
                         }
@@ -581,7 +602,7 @@ public class EntityDuplicationUI : MonoBehaviour
             File.Copy(refModelDir + modelExtension, newModelDir + modelExtension, false);
         }
 
-        for (int i = 0; i <= cropStage; i++)
+        for (int i = 0; i <= cropStageIndex; i++)
         {
             var stageIteration = string.Format("_0{0}", i + 1);
             var modelStage = newModelDir + stageIteration + modelExtension;
