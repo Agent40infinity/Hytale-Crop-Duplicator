@@ -18,5 +18,5 @@ The Hytale Entity Duplicator allows modders aims to eliminate modding busy-work 
 *(Re-extraction required upon Hytale Updating)*
 
 Links:
-- Open Collective: [https://github.com/Agent40infinity/Hytale-Crop-Duplicator](https://opencollective.com/hytale-entity-duplicator)
+- Open Collective: [https://opencollective.com/hytale-entity-duplicator](https://opencollective.com/hytale-entity-duplicator)
 - Contact: me@aiden.fyi 
